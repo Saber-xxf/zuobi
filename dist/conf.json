@@ -1,0 +1,13 @@
+{
+  "username" : "user1",
+  "key": "ahu_111_xxf",
+  "conf": {
+    "KeyId": "LTAI5t9SW8XjwjSSQ8aBHmv7",
+    "KeySecret": "OL40YJjRlc3eNHwIrfoidc5GVu481l",
+    "endpoint": "https://oss-cn-beijing.aliyuncs.com",
+    "bucket_name": "zuobi"
+  },
+  "gpt": ["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"],
+  "database" : "cloud"
+
+}

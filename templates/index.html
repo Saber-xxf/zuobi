@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表格操作</title>
+      <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .selected {
+            background-color: #a0c4e6;
+        }
+        #selectedRows {
+            margin-top: 20px;
+        }
+         #bottomNavbar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: white; /* 设置底部导航栏背景颜色 */
+            display: flex;
+            justify-content: space-around; /* 均匀分布按钮 */
+            padding-bottom: 10px;
+            border-top: 1px solid #ddd;
+        }
+         #copyButton, #sendButton, #refreshButton{
+             width: 25%;
+             height: 50px;
+             border-color: cornflowerblue;
+             border-radius: 10px;
+
+         }
+
+        #selectedText {
+            width: 100%; /* 让文本区域占满底部导航栏 */
+        }
+        #resultTextarea {
+            width: 300px;
+            height: 100px;
+            margin-top: 20px;
+            margin-bottom: 120px;
+            padding: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>选择表格行</h1>
+    <table id="myTable">
+        <tr>
+            <th>Select</th>
+            <th>Data</th>
+        </tr>
+        <!-- 使用Flask模块返回的数据来填充表格 -->
+        {% for item in data %}
+            <tr>
+                <td><input type="checkbox" class="checkbox"></td>
+                <td>{{ item  }}</td>
+
+            </tr>
+        {% endfor %}
+    </table>
+    <div id="selectedRows">
+        <h2>已选择的行</h2>
+        <textarea id="selectedText" rows="4" cols="50"></textarea>
+    </div>
+    <textarea id="resultTextarea" placeholder="接收的结果将在这里显示"></textarea>
+    <div id="bottomNavbar">
+        <button id="refreshButton">刷新页面</button>
+        <button id="copyButton">复制到剪贴板</button>
+        <button id="sendButton">发送</button>
+    </div>
+
+    <script>
+        const checkboxes = document.querySelectorAll('.checkbox');
+        const selectedText = document.getElementById('selectedText');
+        const copyButton = document.getElementById('copyButton');
+        const resultTextarea = document.getElementById('resultTextarea');
+        const sendButton = document.getElementById('sendButton');
+        const refreshButton = document.getElementById('refreshButton');
+
+        // 添加点击事件监听器，点击按钮时刷新页面
+        refreshButton.addEventListener('click', function() {
+            location.reload();
+        });
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectedRows);
+        });
+
+        function updateSelectedRows() {
+            const selectedRows = [];
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const row = checkbox.closest('tr');
+                    selectedRows.push(row.cells[1].textContent);
+                }
+            });
+
+            selectedText.value = selectedRows.join(', ');
+        }
+
+        copyButton.addEventListener('click', copyToClipboard);
+
+        function copyToClipboard() {
+            const textToCopy = selectedText.value;
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            console.log(textToCopy);
+        }
+
+        sendButton.addEventListener('click', sendData);
+
+        function sendData() {
+            const dataToSend =selectedText.value;
+            // 在此处执行将数据发送到服务器的操作，例如使用AJAX请求或Fetch API
+            // 以下是一个简单的示例，向服务器发送数据并将响应显示在文本框中
+            fetch('/send-data', {
+                method: 'POST',
+                body: JSON.stringify({ data: dataToSend }),
+                headers: {
+        'Content-Type': 'application/json; charset=UTF-8' // 设置字符编码为UTF-8
+    }
+            })
+            .then(response => response.text())
+            .then(result => {
+                const decodedData = JSON.parse(result);
+                console.log(decodedData);
+                resultTextarea.scrollIntoView({ behavior: 'smooth' });
+                resultTextarea.value = decodedData;
+            })
+            .catch(error => {
+                console.error('发送数据时出错：', error);
+            });
+        }
+    </script>
+</body>
+</html>
